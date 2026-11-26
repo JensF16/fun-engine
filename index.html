@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Snake</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Rubik:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+/*
+VOICE: verspielt, handfest, wie ein Taschenspiel aus der Jackentasche
+IDEA: ein rotes Handheld-Gehäuse mit LCD-Bildschirm und Steuerkreuz
+PICTURE: das Spielfeld selbst, groß im Gehäuse, Schlange mit Augen, Apfel mit Blatt
+COLOUR and TYPE: Tomatenrot-Gehäuse, oliv-blasses LCD, dunkle Pixel; Silkscreen für Anzeigen, Rubik für Text
+LAYOUT: eine Spalte: Kopfzeile, Bildschirm, Steuerkreuz, darunter letzte Spiele
+*/
+:root{color-scheme:light dark;
+  --bg:light-dark(#f3e9df,#1a1210);--ink:light-dark(#2a1a15,#f3e9df);
+  --body:#d8402f;--body-hi:#ee6a55;--body-lo:#a92c1f;
+  --lcd:#c5d19b;--lcd-lo:#aebb83;--px:#24311a;--px2:#4a5b33;
+  --btn:#2a1a15;--btn-hi:#4a3630}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Rubik,system-ui,sans-serif;overflow-x:clip;
+  padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}
+.wrap{max-width:460px;margin:0 auto}
+.device{background:linear-gradient(160deg,var(--body-hi),var(--body) 35%,var(--body-lo));border-radius:28px 28px 64px 28px;
+  padding:16px 16px 22px;box-shadow:0 18px 40px -18px rgba(80,20,10,.6),inset 0 2px 0 rgba(255,255,255,.25),inset 0 -4px 0 rgba(0,0,0,.18)}
+.top{display:flex;justify-content:space-between;align-items:center;color:#fff3ec;margin:0 4px 10px}
+.brand{font:700 22px/1 Silkscreen,monospace;letter-spacing:1px}
+.led{width:10px;height:10px;border-radius:50%;background:#5a1a12;box-shadow:inset 0 1px 2px rgba(0,0,0,.5)}
+.led.on{background:#ffd15c;box-shadow:0 0 10px #ffd15c}
+.bezel{background:#3a2622;border-radius:14px;padding:12px;box-shadow:inset 0 3px 8px rgba(0,0,0,.5)}
+.hud{display:flex;justify-content:space-between;font:400 15px/1 Silkscreen,monospace;color:var(--px);background:var(--lcd);
+  padding:8px 10px 6px;border-radius:6px 6px 0 0;border-bottom:2px solid var(--lcd-lo)}
+.screen{position:relative;aspect-ratio:1;background:var(--lcd);border-radius:0 0 6px 6px;overflow:hidden;touch-action:none}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+  text-align:center;padding:18px;background:rgba(197,209,155,.93);color:var(--px)}
+.overlay[hidden]{display:none}
+.overlay h2{margin:0;font:700 clamp(26px,8vw,36px)/1.05 Silkscreen,monospace}
+.overlay p{margin:0;font-size:15px;max-width:30ch}
+.name{font:16px Rubik,sans-serif;padding:10px 12px;border-radius:8px;border:2px solid var(--px2);background:#e3ebc4;color:var(--px);width:min(220px,100%);text-align:center}
+.name:focus{outline:3px solid var(--px);outline-offset:2px}
+.go{font:700 16px Silkscreen,monospace;min-height:48px;padding:0 22px;border:0;border-radius:24px;background:var(--px);color:var(--lcd);cursor:pointer}
+.go:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.toast{position:absolute;left:10px;right:10px;top:10px;padding:10px 12px;border-radius:8px;background:var(--px);color:var(--lcd);
+  font:700 15px/1.3 Rubik,sans-serif;text-align:center;transform:translateY(-140%);transition:transform .35s ease}
+.toast.show{transform:none}
+.fact{position:absolute;left:8px;right:8px;bottom:8px;padding:10px 12px;border-radius:8px;background:#fff6c8;color:#2a1a15;
+  font:14px/1.35 Rubik,sans-serif;box-shadow:0 6px 16px -6px rgba(0,0,0,.4);transform:translateY(140%);transition:transform .4s ease}
+.fact.show{transform:none}
+.fact b{display:block;font:700 12px Silkscreen,monospace;margin-bottom:2px}
+.controls{display:flex;justify-content:space-between;align-items:center;margin-top:20px;padding:0 6px}
+.pad{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(3,64px);gap:0}
+.pad button{border:0;background:var(--btn);color:#d9c9c2;font-size:22px;cursor:pointer;touch-action:manipulation;
+  box-shadow:inset 0 2px 0 var(--btn-hi),0 3px 0 rgba(0,0,0,.35)}
+.pad button:active,.pad button.hit{transform:translateY(2px);box-shadow:inset 0 2px 0 var(--btn-hi)}
+.pad .u{grid-area:1/2;border-radius:12px 12px 0 0}.pad .l{grid-area:2/1;border-radius:12px 0 0 12px}
+.pad .r{grid-area:2/3;border-radius:0 12px 12px 0}.pad .d{grid-area:3/2;border-radius:0 0 12px 12px}
+.pad .c{grid-area:2/2;background:var(--btn);border-radius:0;box-shadow:none;pointer-events:none}
+.pad button:focus-visible{outline:3px solid #fff;outline-offset:-3px}
+.side{display:flex;flex-direction:column;gap:14px;align-items:center}
+.round{width:64px;height:64px;border-radius:50%;border:0;background:#2a1a15;color:#fff3ec;font:700 11px Silkscreen,monospace;cursor:pointer;
+  box-shadow:inset 0 2px 0 var(--btn-hi),0 3px 0 rgba(0,0,0,.35)}
+.round:active{transform:translateY(2px)}
+.round:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.grille{display:flex;gap:6px;margin-top:4px}.grille i{width:5px;height:26px;border-radius:3px;background:var(--body-lo);transform:rotate(-25deg)}
+.board{margin-top:22px}
+.board h3{font:700 18px Silkscreen,monospace;margin:0 0 8px}
+.board ol{list-style:none;margin:0;padding:0}
+.board li{display:flex;gap:10px;align-items:baseline;padding:8px 2px;border-bottom:1px solid color-mix(in srgb,var(--ink) 15%,transparent)}
+.board .pos{font:700 14px Silkscreen,monospace;width:2.2em;opacity:.6}
+.board .who{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.board .pts{font:700 16px Silkscreen,monospace;white-space:nowrap}
+.board .when{font-size:13px;opacity:.65;white-space:nowrap}
+.board .empty{opacity:.7;font-size:15px}
+.note{font-size:13px;opacity:.65;margin-top:8px}
+@media(max-width:380px){.pad{grid-template-columns:repeat(3,56px);grid-template-rows:repeat(3,56px)}.round{width:56px;height:56px}}
+@media(prefers-reduced-motion:reduce){.toast,.fact{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="device">
+    <div class="top"><span class="brand">SNAKE</span><span class="led" id="led"></span></div>
+    <div class="bezel">
+      <div class="hud"><span>PUNKTE <span id="score">0</span></span><span>REKORD <span id="best">0</span></span></div>
+      <div class="screen" id="screen">
+        <canvas id="cv"></canvas>
+        <div class="toast" id="toast" role="status" aria-live="polite"></div>
+        <div class="fact" id="fact" aria-live="polite"><b>Wusstest du?</b><span id="factText"></span></div>
+        <div class="overlay" id="ov">
+          <h2 id="ovTitle">SNAKE</h2>
+          <p id="ovText">Steuere mit den Pfeilen oder wische über den Bildschirm. Friss Äpfel, aber triff weder Wand noch dich selbst.</p>
+          <input class="name" id="name" maxlength="16" placeholder="Dein Name" autocomplete="nickname" aria-label="Dein Name">
+          <button class="go" id="go">START</button>
+        </div>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="pad" aria-label="Steuerkreuz">
+        <button class="u" data-dir="up" aria-label="Hoch">▲</button>
+        <button class="l" data-dir="left" aria-label="Links">◀</button>
+        <span class="c"></span>
+        <button class="r" data-dir="right" aria-label="Rechts">▶</button>
+        <button class="d" data-dir="down" aria-label="Runter">▼</button>
+      </div>
+      <div class="side">
+        <button class="round" id="pause" aria-label="Pause">PAUSE</button>
+        <div class="grille"><i></i><i></i><i></i><i></i></div>
+      </div>
+    </div>
+  </div>
+
+  <section class="board">
+    <h3>Letzte Spiele</h3>
+    <ol id="list"></ol>
+    <p class="note">Gespeichert auf diesem Gerät.</p>
+  </section>
+</div>
+
+<script>
+{
+/* ===== Einstellungen ===== */
+// Sounds bei jedem Punkt: hier später data:-URIs der hochgeladenen Dateien eintragen.
+// Solange die Liste leer ist, spielt ein kurzer Platzhalter-Ton.
+const SOUNDS = [];
+const MILESTONE = 10;
+const MILESTONE_MSG = '10 Punkte! Stark gespielt!';   // Platzhalter, Text folgt
+const FACTS = [
+  'Schlangen haben keine Augenlider. Sie schlafen mit offenen Augen.',
+  'Schlangen riechen mit der Zunge: Sie fangen Duftstoffe ein und bringen sie zu einem Organ im Gaumen.',
+  'Die längste je gemessene Schlange war ein Netzpython mit rund 10 Metern.',
+  'Das erste Snake-Spiel gab es schon 1976 als Spielhallenautomat („Blockade“).',
+  'Auf Nokia-Handys war Snake ab 1997 vorinstalliert und lief auf hunderten Millionen Geräten.',
+  'Neuseeland und Irland haben keine einheimischen Landschlangen.',
+  'Manche Schlangen kommen nach einer großen Mahlzeit monatelang ohne Essen aus.',
+  'Ein Oktopus hat drei Herzen und blaues Blut.',
+  'Honig wird nie schlecht. In ägyptischen Gräbern fand man essbaren Honig.',
+  'Bananen sind botanisch Beeren, Erdbeeren dagegen nicht.'
+];
+const N = 17;                 // Felder pro Seite
+const START_MS = 150, MIN_MS = 75;
+
+/* ===== Elemente ===== */
+const $ = id => document.getElementById(id);
+const cv = $('cv'), ctx = cv.getContext('2d'), screen = $('screen');
+const ov = $('ov'), ovTitle = $('ovTitle'), ovText = $('ovText'), go = $('go'), nameIn = $('name');
+const scoreEl = $('score'), bestEl = $('best'), led = $('led');
+const toast = $('toast'), fact = $('fact'), factText = $('factText');
+
+/* ===== Speicher (nur dieses Gerät) ===== */
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+};
+let games = store.get('snake.games', []);
+nameIn.value = store.get('snake.name', '');
+
+/* ===== Audio ===== */
+let actx = null;
+const audioEls = SOUNDS.map(src => { const a = new Audio(src); a.preload = 'auto'; return a; });
+function unlockAudio() {
+  try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); } catch (e) {}
+  audioEls.forEach(a => { a.muted = true; a.play().then(() => { a.pause(); a.currentTime = 0; a.muted = false; }).catch(() => { a.muted = false; }); });
+}
+function pointSound() {
+  if (audioEls.length) {
+    const a = audioEls[Math.floor(Math.random() * audioEls.length)];
+    try { a.currentTime = 0; a.play().catch(() => {}); } catch (e) {}
+    return;
+  }
+  if (!actx) return;
+  const t = actx.currentTime, o = actx.createOscillator(), g = actx.createGain();
+  o.type = 'square'; o.frequency.setValueAtTime(520, t); o.frequency.exponentialRampToValueAtTime(880, t + .09);
+  g.gain.setValueAtTime(.12, t); g.gain.exponentialRampToValueAtTime(.001, t + .14);
+  o.connect(g).connect(actx.destination); o.start(t); o.stop(t + .15);
+}
+
+/* ===== Zeichnen ===== */
+let cell = 20, dpr = 1;
+function resize() {
+  const s = screen.clientWidth; dpr = window.devicePixelRatio || 1;
+  cv.width = Math.round(s * dpr); cv.height = Math.round(s * dpr);
+  cell = cv.width / N; draw();
+}
+const ro = new ResizeObserver(resize); ro.observe(screen);
+
+function rr(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y, w, h, r) : ctx.rect(x, y, w, h); ctx.fill(); }
+
+function draw() {
+  ctx.fillStyle = '#c5d19b'; ctx.fillRect(0, 0, cv.width, cv.height);
+  ctx.fillStyle = 'rgba(36,49,26,.06)';
+  for (let x = 0; x < N; x++) for (let y = 0; y < N; y++) if ((x + y) % 2) ctx.fillRect(x * cell, y * cell, cell, cell);
+  if (!snake) return;
+  // Apfel
+  const ax = (food.x + .5) * cell, ay = (food.y + .55) * cell;
+  ctx.fillStyle = '#b8321f'; ctx.beginPath(); ctx.arc(ax, ay, cell * .38, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.beginPath(); ctx.arc(ax - cell * .13, ay - cell * .12, cell * .09, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#24311a'; ctx.fillRect(ax - cell * .03, ay - cell * .5, cell * .07, cell * .16);
+  ctx.fillStyle = '#4a7a2a'; ctx.beginPath(); ctx.ellipse(ax + cell * .13, ay - cell * .42, cell * .13, cell * .06, -.5, 0, Math.PI * 2); ctx.fill();
+  // Schlange
+  const pad = cell * .08;
+  snake.forEach((p, i) => {
+    ctx.fillStyle = i === 0 ? '#24311a' : (i % 2 ? '#3a4b28' : '#2f3f21');
+    rr(p.x * cell + pad, p.y * cell + pad, cell - pad * 2, cell - pad * 2, cell * .28);
+  });
+  // Augen
+  const h = snake[0], cx = (h.x + .5) * cell, cy = (h.y + .5) * cell;
+  const px = dir.y !== 0 ? 1 : 0, py = dir.x !== 0 ? 1 : 0;
+  [-1, 1].forEach(s => {
+    const ex = cx + dir.x * cell * .15 + px * s * cell * .18, ey = cy + dir.y * cell * .15 + py * s * cell * .18;
+    ctx.fillStyle = '#e8efcf'; ctx.beginPath(); ctx.arc(ex, ey, cell * .12, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(ex + dir.x * cell * .04, ey + dir.y * cell * .04, cell * .06, 0, Math.PI * 2); ctx.fill();
+  });
+}
+
+/* ===== Spiel ===== */
+const DIRS = { up: { x: 0, y: -1 }, down: { x: 0, y: 1 }, left: { x: -1, y: 0 }, right: { x: 1, y: 0 } };
+let snake = null, dir = DIRS.right, queue = [], food = null, score = 0, timer = null, running = false, paused = false, milestoneShown = false;
+let best = games.reduce((m, g) => Math.max(m, g.score), 0);
+bestEl.textContent = best;
+
+function placeFood() {
+  const free = [];
+  for (let x = 0; x < N; x++) for (let y = 0; y < N; y++) if (!snake.some(p => p.x === x && p.y === y)) free.push({ x, y });
+  food = free[Math.floor(Math.random() * free.length)];
+}
+function speed() { return Math.max(MIN_MS, START_MS - score * 3); }
+
+function start() {
+  unlockAudio();
+  store.set('snake.name', nameIn.value.trim());
+  const m = Math.floor(N / 2);
+  snake = [{ x: m, y: m }, { x: m - 1, y: m }, { x: m - 2, y: m }];
+  dir = DIRS.right; queue = []; score = 0; milestoneShown = false;
+  scoreEl.textContent = 0; placeFood();
+  toast.classList.remove('show'); fact.classList.remove('show');
+  ov.hidden = true; running = true; paused = false; led.classList.add('on');
+  loop();
+}
+function loop() { clearTimeout(timer); timer = setTimeout(() => { step(); if (running && !paused) loop(); }, speed()); }
+
+function turn(name) {
+  const d = DIRS[name]; if (!d) return;
+  if (!running) return;
+  const last = queue.length ? queue[queue.length - 1] : dir;
+  if (d.x === -last.x && d.y === -last.y) return;
+  if (d.x === last.x && d.y === last.y) return;
+  if (queue.length < 3) queue.push(d);
+}
+
+function step() {
+  if (queue.length) dir = queue.shift();
+  const h = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+  const eating = h.x === food.x && h.y === food.y;
+  const body = eating ? snake : snake.slice(0, -1);
+  if (h.x < 0 || h.y < 0 || h.x >= N || h.y >= N || body.some(p => p.x === h.x && p.y === h.y)) return over();
+  snake.unshift(h);
+  if (eating) {
+    score++; scoreEl.textContent = score; pointSound();
+    if (score >= MILESTONE && !milestoneShown) milestone();
+    if (snake.length >= N * N) return over(true);
+    placeFood();
+  } else snake.pop();
+  draw();
+}
+
+let toastT = null;
+function milestone() {
+  milestoneShown = true;
+  toast.textContent = MILESTONE_MSG; toast.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(() => toast.classList.remove('show'), 3500);
+  factText.textContent = FACTS[Math.floor(Math.random() * FACTS.length)];
+  fact.classList.add('show');
+}
+
+function over(won) {
+  running = false; clearTimeout(timer); led.classList.remove('on'); draw();
+  const name = nameIn.value.trim() || 'Anonym';
+  games.unshift({ name, score, at: Date.now() }); games = games.slice(0, 20);
+  store.set('snake.games', games);
+  if (score > best) { best = score; bestEl.textContent = best; }
+  renderBoard();
+  ovTitle.textContent = won ? 'GEWONNEN!' : 'GAME OVER';
+  ovText.textContent = score + (score === 1 ? ' Punkt' : ' Punkte') + (score && score >= best ? ' – neuer Rekord!' : '');
+  go.textContent = 'NOCHMAL';
+  setTimeout(() => { ov.hidden = false; }, 350);
+}
+
+function togglePause() {
+  if (!running) return;
+  paused = !paused; $('pause').textContent = paused ? 'WEITER' : 'PAUSE';
+  led.classList.toggle('on', !paused);
+  if (!paused) loop(); else clearTimeout(timer);
+}
+
+/* ===== Rangliste ===== */
+function renderBoard() {
+  const list = $('list'); list.textContent = '';
+  if (!games.length) { const li = document.createElement('li'); li.className = 'empty'; li.textContent = 'Noch keine Spiele. Leg los!'; list.appendChild(li); return; }
+  games.slice(0, 10).forEach((g, i) => {
+    const li = document.createElement('li');
+    const d = new Date(g.at);
+    [['pos', '#' + (i + 1)], ['who', g.name], ['when', d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }) + ' ' + d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })], ['pts', String(g.score)]]
+      .forEach(([c, t]) => { const s = document.createElement('span'); s.className = c; s.textContent = t; li.appendChild(s); });
+    list.appendChild(li);
+  });
+}
+renderBoard();
+
+/* ===== Eingaben ===== */
+go.addEventListener('click', start);
+nameIn.addEventListener('keydown', e => { if (e.key === 'Enter') start(); });
+$('pause').addEventListener('click', togglePause);
+document.querySelectorAll('.pad button').forEach(b => {
+  const fire = e => { e.preventDefault(); turn(b.dataset.dir); b.classList.add('hit'); setTimeout(() => b.classList.remove('hit'), 90); };
+  b.addEventListener('pointerdown', fire);
+});
+const KEYS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', w: 'up', s: 'down', a: 'left', d: 'right' };
+document.addEventListener('keydown', e => {
+  if (e.target === nameIn) return;
+  if (KEYS[e.key]) { e.preventDefault(); turn(KEYS[e.key]); }
+  else if (e.key === ' ' || e.key === 'p') { e.preventDefault(); running ? togglePause() : start(); }
+});
+// Wischen
+let sx = 0, sy = 0, swiping = false;
+screen.addEventListener('touchstart', e => { const t = e.touches[0]; sx = t.clientX; sy = t.clientY; swiping = true; }, { passive: true });
+screen.addEventListener('touchmove', e => {
+  if (!swiping || !running) return;
+  e.preventDefault();
+  const t = e.touches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+  if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;
+  turn(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'));
+  sx = t.clientX; sy = t.clientY;
+}, { passive: false });
+screen.addEventListener('touchend', () => { swiping = false; });
+document.addEventListener('visibilitychange', () => { if (document.hidden && running && !paused) togglePause(); });
+
+resize();
+}
+</script>
+</body>
+</html>
