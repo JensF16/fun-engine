@@ -78,6 +78,12 @@ html{transition:background .3s}
 [data-skin=nokia] .round{width:74px;height:46px;border-radius:23px;background:var(--btn);color:#1d2733;box-shadow:inset 0 2px 0 var(--btn-hi),0 3px 0 #1a2430}
 [data-skin=nokia] .grille i{background:#1a2430;transform:none;width:22px;height:4px}
 [data-skin=nokia] .grille{flex-direction:column;gap:4px}
+[data-skin=nokia] .fact{inset:-8px 18px 26px;border-radius:18px 18px 46px 46px;padding:12px 20px}
+[data-skin=nokia] .fact b{font-size:12px}
+
+.controls:has(.fact.show) .pad,.controls:has(.fact.show) .side{visibility:hidden}
+[data-skin=arcade] .lbopen:not(#contGo),[data-skin=synth] .lbopen:not(#contGo){background:#ff2bd6;color:#fff}
+
 
 /* Arcade-Automat */
 :root[data-skin=arcade]{color-scheme:dark;--bg:#0b0614;--ink:#f1e9ff;--body:#1a1030;--body-hi:#2c1a50;--body-lo:#0d0718;--lcd:#05010f;--lcd-lo:#2a1450;
@@ -257,7 +263,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 @media(prefers-reduced-motion:reduce){.win *{animation:none!important}}
 .toast.show{transform:none;visibility:visible}
 .controls{position:relative;display:flex;justify-content:space-between;align-items:center;margin-top:20px;padding:0 6px}
-.fact{position:absolute;inset:-6px 0;z-index:2;display:flex;flex-direction:column;justify-content:center;gap:6px;padding:16px 18px;border-radius:18px;
+.fact{position:absolute;inset:-6px 4px;z-index:2;display:flex;flex-direction:column;justify-content:center;gap:6px;padding:16px 18px;border-radius:18px;
   background:#fff6c8;color:#2a1a15;box-shadow:0 10px 24px -10px rgba(0,0,0,.5),inset 0 -3px 0 #e8d98e;
   font:16px/1.4 Rubik,sans-serif;opacity:0;visibility:hidden;transform:translateY(10px);transition:opacity .35s,transform .35s,visibility .35s}
 .fact.show{opacity:1;visibility:visible;transform:none}
@@ -290,6 +296,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .lbb .go{background:var(--ink);color:var(--bg);flex:1 1 auto}
 .lbx{min-height:48px;padding:0 18px;border-radius:24px;border:2px solid color-mix(in srgb,var(--ink) 30%,transparent);background:none;color:var(--ink);font:600 15px Rubik,sans-serif;cursor:pointer}
 .lbx:focus-visible,.lbopen:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.cont .lbopen{background:linear-gradient(90deg,#ff004c,#ff8a00,#d500f9);color:#fff;font:700 16px Rubik,sans-serif;min-height:48px;padding:0 22px;box-shadow:0 0 14px rgba(255,0,200,.5)}
 .lbopen{align-self:flex-start;min-height:44px;padding:0 16px;margin-top:4px;border:0;border-radius:22px;background:#2a1a15;color:#fff6c8;font:600 15px Rubik,sans-serif;cursor:pointer}
 @media(prefers-reduced-motion:reduce){.lbc{animation:none}}
 .board h3{font:700 18px Silkscreen,monospace;margin:0 0 8px}
@@ -346,6 +353,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
       </div>
     </div>
     <div class="controls">
+      <div class="fact cont" id="cont"><b>Noch nicht genug, Chris?</b><span>Spiel mit deinen 10 Punkten einfach weiter!</span><button class="lbopen" id="contGo">▶ WEITERSPIELEN</button></div>
       <div class="fact" id="fact" aria-live="polite"><b>Wusstest du?</b><span id="factText"></span><button class="lbopen" id="lbOpen">🏆 Rangliste ansehen</button></div>
       <div class="pad" aria-label="Steuerkreuz">
         <button class="u" data-dir="up" aria-label="Hoch">▲</button>
@@ -396,16 +404,21 @@ const SOUNDS = [
 const MILESTONE = 10;
 const MILESTONE_MSG = '10 Punkte! Stark gespielt!';   // Platzhalter, Text folgt
 const FACTS = [
-  'Schlangen haben keine Augenlider. Sie schlafen mit offenen Augen.',
-  'Schlangen riechen mit der Zunge: Sie fangen Duftstoffe ein und bringen sie zu einem Organ im Gaumen.',
-  'Die längste je gemessene Schlange war ein Netzpython mit rund 10 Metern.',
-  'Das erste Snake-Spiel gab es schon 1976 als Spielhallenautomat („Blockade“).',
-  'Auf Nokia-Handys war Snake ab 1997 vorinstalliert und lief auf hunderten Millionen Geräten.',
-  'Neuseeland und Irland haben keine einheimischen Landschlangen.',
-  'Manche Schlangen kommen nach einer großen Mahlzeit monatelang ohne Essen aus.',
-  'Ein Oktopus hat drei Herzen und blaues Blut.',
-  'Honig wird nie schlecht. In ägyptischen Gräbern fand man essbaren Honig.',
-  'Bananen sind botanisch Beeren, Erdbeeren dagegen nicht.'
+  'Wir verbringen ungefähr ein Drittel unseres Lebens mit Schlafen.',
+  'Der Klettverschluss wurde von Kletten inspiriert, die nach einem Spaziergang im Fell eines Hundes hingen.',
+  'Die Mikrowelle wurde zufällig erfunden: Einem Ingenieur schmolz neben einem Radargerät ein Schokoriegel in der Hosentasche.',
+  'Erdnüsse sind gar keine Nüsse, sondern Hülsenfrüchte, also mit Erbsen und Bohnen verwandt.',
+  'Bananen sind botanisch Beeren, Erdbeeren dagegen nicht.',
+  'Honig wird nie schlecht. In ägyptischen Gräbern fand man jahrtausendealten, noch essbaren Honig.',
+  'Ein Blitz ist mehrere Male heißer als die Oberfläche der Sonne.',
+  'Der Eiffelturm ist im Sommer einige Zentimeter höher, weil sich das Metall bei Hitze ausdehnt.',
+  'Gähnen ist ansteckend. Manchmal reicht es schon, nur darüber zu lesen.',
+  'Die Post-it-Zettel entstanden aus einem „misslungenen“ Kleber, der zu schwach hielt.',
+  'Ketchup wurde im 19. Jahrhundert in den USA als Medizin verkauft.',
+  'Ein normaler Kronkorken hat genau 21 Zacken.',
+  'Die Buchstaben-Anordnung auf der Tastatur stammt noch von der Schreibmaschine.',
+  'Finnland trinkt pro Kopf mehr Kaffee als jedes andere Land der Welt.',
+  'Wir blinzeln ungefähr 15- bis 20-mal pro Minute, merken es aber kaum.'
 ];
 const N = 17;                 // Felder pro Seite
 const START_MS = 150, MIN_MS = 75;
@@ -1126,7 +1139,7 @@ function start() {
   snake = [{ x: m, y: m }, { x: m - 1, y: m }, { x: m - 2, y: m }];
   dir = DIRS.right; queue = []; score = 0; milestoneShown = false;
   scoreEl.textContent = 0; placeFood();
-  toast.classList.remove('show'); fact.classList.remove('show');
+  toast.classList.remove('show'); fact.classList.remove('show'); $('cont').classList.remove('show'); continued = false;
   $('win').hidden = true; $('love').hidden = true; ov.hidden = true; running = true; paused = false; led.classList.add('on');
   loop();
 }
@@ -1188,7 +1201,7 @@ function over(won) {
   go.textContent = 'NOCHMAL';
   factText.textContent = FACTS[Math.floor(Math.random() * FACTS.length)];
   fact.classList.add('show');
-  if (bike && score >= MILESTONE) {
+  if (bike && score >= MILESTONE && !continued) {
     // Chris hat die 10 geschafft: Liebeserklärung statt Game Over
     setTimeout(() => { $('love').hidden = false; }, 350);
     return;
@@ -1237,7 +1250,7 @@ const START_TITLE = ovTitle.textContent, START_TEXT = ovText.textContent;
 function showStartMenu() {
   $('love').hidden = true; $('win').hidden = true;
   ovTitle.textContent = START_TITLE; ovText.textContent = START_TEXT; go.textContent = 'START';
-  $('ly').hidden = true; ov.classList.remove('over'); fact.classList.remove('show');
+  $('ly').hidden = true; ov.classList.remove('over'); fact.classList.remove('show'); $('cont').classList.remove('show');
   ov.hidden = false;
 }
 // WEITER nach der Liebeserklärung: YOU WIN mit Trommelwirbel
@@ -1247,9 +1260,24 @@ $('loveGo').addEventListener('click', () => {
   $('win').classList.add('roll');
   drumroll(5);
   $('conf').textContent = '';
-  clearTimeout(rollT); rollT = setTimeout(() => { $('win').classList.remove('roll'); confetti(); b.style.visibility = ''; b.focus({ preventScroll: true }); }, 5000);
+  fact.classList.remove('show'); $('cont').classList.remove('show');
+  clearTimeout(rollT); rollT = setTimeout(() => { $('win').classList.remove('roll'); confetti(); b.style.visibility = ''; $('cont').classList.add('show'); }, 5000);
 });
-let rollT = null;
+let rollT = null, continued = false;
+// WEITERSPIELEN: Chris spielt mit seinen Punkten weiter (kurzer Countdown)
+$('contGo').addEventListener('click', () => {
+  $('cont').classList.remove('show'); $('win').hidden = true; clearTimeout(rollT);
+  // der bei 10 Punkten gespeicherte Eintrag wird ersetzt, wenn das Spiel später endet
+  if (games[0] && games[0].name.toLowerCase() === 'chris' && games[0].score === score) { games.shift(); store.set('snake.games', games); }
+  continued = true; queue = []; draw();
+  let n = 3;
+  const tick = () => {
+    if (n > 0) { toast.textContent = String(n); toast.classList.add('show'); n--; setTimeout(tick, 600); return; }
+    toast.textContent = 'LOS!'; setTimeout(() => toast.classList.remove('show'), 500);
+    running = true; paused = false; led.classList.add('on'); loop();
+  };
+  tick();
+});
 // Konfetti-Regen beim Tusch
 function confetti() {
   const box = $('conf'), C = ['#ff004c', '#ff8a00', '#fff200', '#00e676', '#00b0ff', '#d500f9', '#ffffff', '#ffd700'];
