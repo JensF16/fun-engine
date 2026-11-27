@@ -24,6 +24,98 @@ LAYOUT: eine Spalte: Kopfzeile, Bildschirm, Steuerkreuz, darunter letzte Spiele
   --lcd:#2b3a22;--lcd-lo:#3d5030;--px:#c8f08a;--px2:#8fb85a;--ov:rgba(30,42,22,.94);--field:#1d2816;
   --btn:#0e0908;--btn-hi:#2c201c}
 html{transition:background .3s}
+/* ===== Designs (Schalter oben) ===== */
+.skins{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:3px;padding:4px;margin:0 0 14px;border-radius:14px;
+  background:color-mix(in srgb,var(--ink) 9%,transparent);box-shadow:inset 0 1px 3px rgba(0,0,0,.12)}
+.skins button{min-height:46px;border:0;border-radius:10px;background:none;color:var(--ink);font:600 11px/1.1 Rubik,sans-serif;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:4px 2px;transition:background .2s,color .2s}
+.skins button i{width:12px;height:12px;border-radius:50%;background:var(--sw);box-shadow:0 0 0 2px color-mix(in srgb,var(--ink) 15%,transparent)}
+.skins button[aria-checked=true]{background:var(--ink);color:var(--bg);box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.skins button:focus-visible{outline:3px solid var(--ink);outline-offset:1px}
+.device{position:relative}
+.screen::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:2}
+[data-skin=nokia] .mode,[data-skin=arcade] .mode,[data-skin=synth] .mode,[data-skin=xmas] .mode{display:none}
+[data-skin=arcade] .fact,[data-skin=synth] .fact{background:#1d1033;color:#f3e9ff;box-shadow:0 0 0 2px #ff2bd6,0 0 18px rgba(255,43,214,.5)}
+[data-skin=arcade] .fact b,[data-skin=synth] .fact b{color:#00f0ff}
+
+/* Nokia 3310 */
+:root[data-skin=nokia]{color-scheme:light;--bg:#dde3ea;--ink:#1d2733;--body:#3b4b5e;--body-hi:#5d7187;--body-lo:#1f2b38;--lcd:#9fb98a;--lcd-lo:#89a374;
+  --px:#1e2a16;--px2:#40553a;--ov:rgba(159,185,138,.94);--field:#b5cba0;--btn:#cdd5de;--btn-hi:#f2f5f8}
+[data-skin=nokia] .device{border-radius:72px 72px 120px 120px;padding:26px 24px 40px}
+[data-skin=nokia] .top{justify-content:center;position:relative}
+[data-skin=nokia] .brand{font:700 17px/1 Rubik,sans-serif;letter-spacing:7px;color:#e9eef3}
+[data-skin=nokia] .tools{position:absolute;right:0}
+[data-skin=nokia] .bezel{background:linear-gradient(#cfd7df,#aab5c1);border-radius:24px 24px 44px 44px;padding:20px 18px 30px;box-shadow:inset 0 2px 6px rgba(0,0,0,.3)}
+[data-skin=nokia] .hud,[data-skin=nokia] .screen{box-shadow:inset 0 0 0 2px #6f8360}
+[data-skin=nokia] .pad button{color:#1d2733;border-radius:16px!important;margin:3px;box-shadow:inset 0 2px 0 var(--btn-hi),0 3px 0 #1a2430}
+[data-skin=nokia] .pad .c{background:none}
+[data-skin=nokia] .round{width:74px;height:46px;border-radius:23px;background:var(--btn);color:#1d2733;box-shadow:inset 0 2px 0 var(--btn-hi),0 3px 0 #1a2430}
+[data-skin=nokia] .grille i{background:#1a2430;transform:none;width:22px;height:4px}
+[data-skin=nokia] .grille{flex-direction:column;gap:4px}
+
+/* Arcade-Automat */
+:root[data-skin=arcade]{color-scheme:dark;--bg:#0b0614;--ink:#f1e9ff;--body:#1a1030;--body-hi:#2c1a50;--body-lo:#0d0718;--lcd:#05010f;--lcd-lo:#2a1450;
+  --px:#39ff14;--px2:#24a80d;--ov:rgba(5,1,15,.92);--field:#120a24;--btn:#e0213b;--btn-hi:#ff7a8c}
+[data-skin=arcade] .device{border-radius:16px 16px 10px 10px;border:3px solid #ff2bd6;box-shadow:0 0 28px rgba(255,43,214,.45),inset 0 0 0 3px #2c1a50}
+[data-skin=arcade] .top{background:linear-gradient(#ffd84a,#ff8a00);border-radius:8px;padding:10px 12px;margin:0 0 12px;box-shadow:0 0 18px rgba(255,170,0,.6)}
+[data-skin=arcade] .brand{color:#2a0a4a;font-size:24px;text-shadow:2px 2px 0 #fff3b0}
+[data-skin=arcade] .bezel{background:#000;border-radius:10px;box-shadow:inset 0 0 0 3px #222,0 0 20px rgba(57,255,20,.25)}
+[data-skin=arcade] .hud{text-shadow:0 0 8px #39ff14}
+[data-skin=arcade] .screen::after{background:repeating-linear-gradient(0deg,rgba(0,0,0,.28) 0 1px,transparent 1px 3px),radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,.45))}
+[data-skin=arcade] .controls{background:linear-gradient(#2c1a50,#1a1030);border-radius:12px;padding:14px 12px;border-top:4px solid #ff2bd6}
+[data-skin=arcade] .pad button{border-radius:50%!important;margin:4px;color:#fff;box-shadow:inset 0 -5px 0 rgba(0,0,0,.3),0 0 12px rgba(224,33,59,.6)}
+[data-skin=arcade] .pad .c{background:radial-gradient(circle,#111 0 9px,#333 10px 13px,transparent 14px);border-radius:50%}
+[data-skin=arcade] .round{background:#ffd84a;color:#2a0a4a;box-shadow:inset 0 -5px 0 rgba(0,0,0,.25),0 0 12px rgba(255,216,74,.6)}
+[data-skin=arcade] .grille i{background:#ff2bd6}
+
+/* Synthwave */
+:root[data-skin=synth]{color-scheme:dark;--bg:#1a0033;--ink:#ffd9f6;--body:#2a0050;--body-hi:#3d0a6b;--body-lo:#14002e;--lcd:#14002e;--lcd-lo:#ff2bd6;
+  --px:#00f0ff;--px2:#ff2bd6;--ov:rgba(20,0,46,.92);--field:#22004a;--btn:#14002e;--btn-hi:#00f0ff}
+[data-skin=synth] body{background:radial-gradient(circle at 50% 100%,#ffcf3f 0,#ff6a3d 90px,#ff2bd6 200px,transparent 380px),linear-gradient(#0d0024,#2a0050 55%,#6a0f8a);background-attachment:fixed}
+[data-skin=synth] .device{background:rgba(20,0,46,.78);border:2px solid #ff2bd6;box-shadow:0 0 26px rgba(255,43,214,.6),inset 0 0 22px rgba(0,240,255,.18)}
+[data-skin=synth] .brand{font:400 22px/1 Bungee,Silkscreen,sans-serif;color:#00f0ff;text-shadow:0 0 8px #00f0ff,0 0 20px #00f0ff,2px 2px 0 #ff2bd6}
+[data-skin=synth] .bezel{background:#0d0024;box-shadow:inset 0 0 0 2px #ff2bd6,0 0 16px rgba(255,43,214,.5)}
+[data-skin=synth] .hud{text-shadow:0 0 8px #00f0ff;border-bottom-color:#ff2bd6}
+[data-skin=synth] .pad button,[data-skin=synth] .round{background:#14002e;color:#00f0ff;box-shadow:inset 0 0 0 2px #00f0ff,0 0 12px rgba(0,240,255,.6)}
+[data-skin=synth] .pad .c{background:none}
+[data-skin=synth] .round{color:#ff2bd6;box-shadow:inset 0 0 0 2px #ff2bd6,0 0 12px rgba(255,43,214,.6)}
+[data-skin=synth] .grille i{background:#ff2bd6;box-shadow:0 0 6px #ff2bd6}
+
+/* Weihnachtlich */
+:root[data-skin=xmas]{color-scheme:dark;--bg:#0f2e22;--ink:#fff8e7;--body:#b71c1c;--body-hi:#e53935;--body-lo:#7f0000;--lcd:#eef6fb;--lcd-lo:#cfe0ec;
+  --px:#0f3d2a;--px2:#2e7d32;--ov:rgba(238,246,251,.94);--field:#ffffff;--btn:#1b5e20;--btn-hi:#4caf50}
+[data-skin=xmas] .device{border:4px solid #e7b73c;margin-top:10px}
+[data-skin=xmas] .device::before{content:'';position:absolute;left:18px;right:18px;top:-9px;height:16px;pointer-events:none;
+  background:radial-gradient(circle,#ff3b3b 0 4px,transparent 5px) 0 0/48px 16px,radial-gradient(circle,#ffd84a 0 4px,transparent 5px) 12px 0/48px 16px,
+  radial-gradient(circle,#3bd16f 0 4px,transparent 5px) 24px 0/48px 16px,radial-gradient(circle,#4fc3ff 0 4px,transparent 5px) 36px 0/48px 16px;
+  filter:drop-shadow(0 0 4px #fff);animation:blink 1.6s steps(2) infinite}
+[data-skin=xmas] .brand{color:#fff8e7;text-shadow:0 2px 0 #7f0000}
+[data-skin=xmas] .bezel{background:#e7b73c;box-shadow:inset 0 2px 6px rgba(0,0,0,.35)}
+[data-skin=xmas] .pad button{color:#fff8e7}
+[data-skin=xmas] .round{background:#e7b73c;color:#7f0000}
+[data-skin=xmas] .grille i{background:#e7b73c}
+[data-skin=xmas] body::after{content:'';position:fixed;inset:-100px 0 0;pointer-events:none;z-index:50;opacity:.8;
+  background:radial-gradient(circle,#fff 0 2px,transparent 3px) 0 0/90px 90px,radial-gradient(circle,#fff 0 1.5px,transparent 2.5px) 40px 30px/70px 70px,
+  radial-gradient(circle,rgba(255,255,255,.7) 0 1px,transparent 2px) 20px 60px/50px 50px;animation:snow 12s linear infinite}
+@keyframes snow{to{background-position:0 90px,40px 100px,20px 110px}}
+@keyframes blink{50%{filter:drop-shadow(0 0 6px #fff) hue-rotate(90deg) brightness(1.3)}}
+
+/* Minimalistisch */
+:root[data-skin=minimal]{color-scheme:light;--bg:#f6f6f4;--ink:#141414;--lcd:#ffffff;--lcd-lo:#e4e4e2;--px:#141414;--px2:#9a9a9a;--ov:rgba(255,255,255,.95);--field:#f2f2f0;--btn:#ebebe8;--btn-hi:#fff}
+:root[data-skin=minimal].dark{color-scheme:dark;--bg:#0b0b0b;--ink:#eeeeee;--lcd:#111111;--lcd-lo:#262626;--px:#f2f2f2;--px2:#666;--ov:rgba(17,17,17,.95);--field:#1b1b1b;--btn:#1d1d1d;--btn-hi:#2b2b2b}
+[data-skin=minimal] .device{background:none;box-shadow:none;padding:0;border-radius:0}
+[data-skin=minimal] .top{color:var(--ink);margin:0 2px 8px}
+[data-skin=minimal] .brand{font:600 18px/1 Rubik,sans-serif;letter-spacing:0}
+[data-skin=minimal] .led,[data-skin=minimal] .grille{display:none}
+[data-skin=minimal] .mode{background:var(--btn);color:var(--ink);box-shadow:none}
+[data-skin=minimal] .bezel{background:none;box-shadow:none;padding:0}
+[data-skin=minimal] .hud{background:none;border:0;font:600 16px/1 Rubik,sans-serif;padding:2px 2px 10px}
+[data-skin=minimal] .screen{border-radius:16px;box-shadow:0 0 0 1px var(--lcd-lo)}
+[data-skin=minimal] .pad button{background:var(--btn);color:var(--px);box-shadow:none;border-radius:14px!important;margin:3px}
+[data-skin=minimal] .pad .c{background:none}
+[data-skin=minimal] .round{background:var(--btn);color:var(--ink);box-shadow:none}
+@media(prefers-reduced-motion:reduce){[data-skin=xmas] body::after,[data-skin=xmas] .device::before{animation:none}}
+
 .tools{display:flex;align-items:center;gap:10px}
 .mode{width:34px;height:34px;border-radius:10px;border:0;padding:0;display:grid;place-items:center;cursor:pointer;
   background:rgba(0,0,0,.22);color:#fff3ec;box-shadow:inset 0 1px 0 rgba(255,255,255,.2)}
@@ -140,7 +232,21 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .round:active{transform:translateY(2px)}
 .round:focus-visible{outline:3px solid #fff;outline-offset:3px}
 .grille{display:flex;gap:6px;margin-top:4px}.grille i{width:5px;height:26px;border-radius:3px;background:var(--body-lo);transform:rotate(-25deg)}
-.board{margin-top:22px}
+.board{margin-top:0}
+.lb{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.55);backdrop-filter:blur(3px)}
+.lb[hidden]{display:none}
+.lbc{width:min(420px,100%);max-height:calc(100dvh - 32px);overflow-y:auto;background:var(--bg);color:var(--ink);border-radius:20px;padding:20px 18px 18px;
+  box-shadow:0 20px 50px -10px rgba(0,0,0,.6);animation:lbIn .25s ease}
+@keyframes lbIn{from{transform:translateY(20px) scale(.97);opacity:0}}
+.lbc h3{font-size:22px!important}
+.board li.me{background:color-mix(in srgb,var(--ink) 9%,transparent);border-radius:8px}
+.board .neu{font:700 10px Rubik,sans-serif;background:#ff2bd6;color:#fff;border-radius:6px;padding:2px 5px;margin-left:6px;vertical-align:2px}
+.lbb{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;align-items:center}
+.lbb .go{background:var(--ink);color:var(--bg);flex:1 1 auto}
+.lbx{min-height:48px;padding:0 18px;border-radius:24px;border:2px solid color-mix(in srgb,var(--ink) 30%,transparent);background:none;color:var(--ink);font:600 15px Rubik,sans-serif;cursor:pointer}
+.lbx:focus-visible,.lbopen:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.lbopen{align-self:flex-start;min-height:44px;padding:0 16px;margin-top:4px;border:0;border-radius:22px;background:#2a1a15;color:#fff6c8;font:600 15px Rubik,sans-serif;cursor:pointer}
+@media(prefers-reduced-motion:reduce){.lbc{animation:none}}
 .board h3{font:700 18px Silkscreen,monospace;margin:0 0 8px}
 .board ol{list-style:none;margin:0;padding:0}
 .board li{display:flex;gap:10px;align-items:baseline;padding:8px 2px;border-bottom:1px solid color-mix(in srgb,var(--ink) 15%,transparent)}
@@ -156,8 +262,9 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 </head>
 <body>
 <div class="wrap">
+  <div class="skins" id="skins" role="radiogroup" aria-label="Design wählen"></div>
   <div class="device">
-    <div class="top"><span class="brand">SNAKE</span><span class="tools"><span class="led" id="led"></span><button class="mode" id="mode" aria-label="Dunkelmodus umschalten" title="Hell / Dunkel"></button></span></div>
+    <div class="top"><span class="brand" id="brand">SNAKE</span><span class="tools"><span class="led" id="led"></span><button class="mode" id="mode" aria-label="Dunkelmodus umschalten" title="Hell / Dunkel"></button></span></div>
     <div class="bezel">
       <div class="hud"><span>PUNKTE <span id="score">0</span></span><span>REKORD <span id="best">0</span></span></div>
       <div class="screen" id="screen">
@@ -188,7 +295,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
       </div>
     </div>
     <div class="controls">
-      <div class="fact" id="fact" aria-live="polite"><b>Wusstest du?</b><span id="factText"></span><small>Tippe auf NOCHMAL für eine neue Runde.</small></div>
+      <div class="fact" id="fact" aria-live="polite"><b>Wusstest du?</b><span id="factText"></span><button class="lbopen" id="lbOpen">🏆 Rangliste ansehen</button></div>
       <div class="pad" aria-label="Steuerkreuz">
         <button class="u" data-dir="up" aria-label="Hoch">▲</button>
         <button class="l" data-dir="left" aria-label="Links">◀</button>
@@ -203,11 +310,14 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
     </div>
   </div>
 
-  <section class="board">
-    <h3>Letzte Spiele</h3>
-    <ol id="list"></ol>
-    <p class="note">Gespeichert auf diesem Gerät.</p>
-  </section>
+  <div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-labelledby="lbT">
+    <div class="lbc board">
+      <h3 id="lbT">🏆 Rangliste</h3>
+      <ol id="list"></ol>
+      <p class="note">Die besten Spiele auf diesem Gerät.</p>
+      <div class="lbb"><button class="go" id="lbPlay">NOCHMAL SPIELEN</button><button class="lbx" id="lbClose">Zurück</button></div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -263,7 +373,48 @@ const THEMES = {
 };
 let dark = store.get('snake.dark', null);
 if (dark === null) { try { dark = matchMedia('(prefers-color-scheme: dark)').matches; } catch (e) { dark = false; } }
-const T = () => dark ? THEMES.dark : THEMES.light;
+// Designs: Reihenfolge des Schalters
+const SKINS = [
+  { id: 'nokia', label: 'Nokia', brand: 'NOKIA', sw: '#3b4b5e', pal: { lcd: '#9fb98a', check: 'rgba(30,42,22,.07)', head: '#1e2a16', b1: '#2b3b20', b2: '#24321b' } },
+  { id: 'arcade', label: 'Arcade', brand: 'SNAKE', sw: '#ff2bd6', pal: { lcd: '#05010f', check: 'rgba(255,255,255,.03)', head: '#7dff5a', b1: '#39ff14', b2: '#2ee010' } },
+  { id: 'synth', label: 'Synth', brand: 'SNAKEWAVE', sw: '#00f0ff', pal: { lcd: '#14002e', grid: 'rgba(255,43,214,.38)', head: '#7ff8ff', b1: '#00f0ff', b2: '#00cde0' } },
+  { id: 'xmas', label: 'Xmas', brand: 'X-MAS SNAKE', sw: '#d62828', pal: { lcd: '#eef6fb', check: 'rgba(120,160,200,.12)', head: '#b71c1c', b1: '#d62828', b2: '#2e7d32' } },
+  { id: 'minimal', label: 'Minimal', brand: 'snake', sw: '#c9c9c4',
+    pal: { lcd: '#ffffff', check: 'rgba(0,0,0,.035)', head: '#111', b1: '#333', b2: '#2a2a2a' },
+    palDark: { lcd: '#111111', check: 'rgba(255,255,255,.04)', head: '#f5f5f5', b1: '#d0d0d0', b2: '#bcbcbc' } },
+  { id: 'gameboy', label: 'Gameboy', brand: 'SNAKE', sw: '#d8402f' }
+];
+let skin = store.get('snake.skin', 'gameboy');
+if (!SKINS.some(x => x.id === skin)) skin = 'gameboy';
+const SK = () => SKINS.find(x => x.id === skin);
+function T() {
+  if (skin === 'gameboy') return dark ? THEMES.dark : THEMES.light;
+  const sk = SK(); return dark && sk.palDark ? sk.palDark : sk.pal;
+}
+// Neon-Glow: Gameboy im Dunkelmodus, Arcade und Synthwave immer
+const NEON = () => skin === 'arcade' || skin === 'synth' || (skin === 'gameboy' && dark);
+const DARKBG = () => NEON() || (skin === 'minimal' && dark);
+function applySkin() {
+  document.documentElement.dataset.skin = skin;
+  $('brand').textContent = SK().brand;
+  document.querySelectorAll('#skins button').forEach(b => b.setAttribute('aria-checked', String(b.dataset.skin === skin)));
+}
+SKINS.forEach(x => {
+  const b = document.createElement('button');
+  b.type = 'button'; b.dataset.skin = x.id; b.setAttribute('role', 'radio');
+  b.style.setProperty('--sw', x.sw);
+  const i = document.createElement('i'), t = document.createElement('span'); t.textContent = x.label;
+  b.append(i, t);
+  b.addEventListener('click', () => { skin = x.id; store.set('snake.skin', skin); applySkin(); draw(); });
+  $('skins').appendChild(b);
+});
+$('skins').addEventListener('keydown', e => {
+  if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+  e.preventDefault(); e.stopPropagation();
+  const i = SKINS.findIndex(x => x.id === skin), n = (i + (e.key === 'ArrowRight' ? 1 : -1) + SKINS.length) % SKINS.length;
+  const b = $('skins').children[n]; b.click(); b.focus();
+});
+applySkin();
 const SUN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>';
 const MOON = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 14.6A8.5 8.5 0 0 1 9.4 3.5a8.5 8.5 0 1 0 11.1 11.1z"/></svg>';
 function applyTheme() {
@@ -283,7 +434,7 @@ const mainCtx = ctx, layer = document.createElement('canvas'), lctx = layer.getC
 let open = null;
 function glow(c, f) {
   noGlow();
-  if (!dark) return;
+  if (!NEON()) return;
   if (layer.width !== mainCtx.canvas.width || layer.height !== mainCtx.canvas.height) { layer.width = mainCtx.canvas.width; layer.height = mainCtx.canvas.height; }
   lctx.setTransform(1, 0, 0, 1, 0, 0); lctx.clearRect(0, 0, layer.width, layer.height);
   open = { c, f: f || .6 }; ctx = lctx;
@@ -298,7 +449,7 @@ function noGlow() {
 }
 // Neon-Ring um ein Sammelobjekt (nur im Dunkelmodus)
 function ring(x, y, r, c) {
-  if (!dark) return;
+  if (!NEON()) return;
   ctx.save(); ctx.strokeStyle = c; ctx.lineWidth = cell * .06; ctx.shadowColor = c; ctx.shadowBlur = cell * .35;
   ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
 }
@@ -358,8 +509,14 @@ function draw() { drawScene(); noGlow(); }
 function drawScene() {
   noGlow();
   ctx.fillStyle = T().lcd; ctx.fillRect(0, 0, cv.width, cv.height);
-  ctx.fillStyle = T().check;
-  for (let x = 0; x < N; x++) for (let y = 0; y < N; y++) if ((x + y) % 2) ctx.fillRect(x * cell, y * cell, cell, cell);
+  if (T().grid) {
+    // Synthwave: leuchtendes Gitter statt Schachbrett
+    ctx.strokeStyle = T().grid; ctx.lineWidth = Math.max(1, cell * .04);
+    ctx.beginPath(); for (let i = 1; i < N; i++) { ctx.moveTo(i * cell, 0); ctx.lineTo(i * cell, cv.height); ctx.moveTo(0, i * cell); ctx.lineTo(cv.width, i * cell); } ctx.stroke();
+  } else {
+    ctx.fillStyle = T().check;
+    for (let x = 0; x < N; x++) for (let y = 0; y < N; y++) if ((x + y) % 2) ctx.fillRect(x * cell, y * cell, cell, cell);
+  }
   if (!snake) return;
   if (horse) return drawHorse();
   if (bike) return drawBike();
@@ -431,7 +588,7 @@ function figure(x, y, fn, scale, color) {
   const k = cell;
   noGlow();
   // dunkler Fleck unter der Figur für mehr Kontrast
-  if (dark) { const g = ctx.createRadialGradient(x, y, 0, x, y, k * .8); g.addColorStop(0, 'rgba(0,0,0,.55)'); g.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = g; ctx.fillRect(x - k, y - k, k * 2, k * 2); }
+  if (DARKBG()) { const g = ctx.createRadialGradient(x, y, 0, x, y, k * .8); g.addColorStop(0, 'rgba(0,0,0,.55)'); g.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = g; ctx.fillRect(x - k, y - k, k * 2, k * 2); }
   ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(x, y + k * .42, k * .42, k * .1, 0, 0, Math.PI * 2); ctx.fill();
   glow(color || '#ffffff', .75);
   ctx.save(); ctx.translate(x, y);
@@ -641,7 +798,7 @@ function drawMode() {
   const k = cell, C = p => [(p.x + .5) * k, (p.y + .5) * k];
   // Futter = das nächste Sammelobjekt
   const [fx, fy] = C(food);
-  ctx.fillStyle = dark ? 'rgba(255,255,255,.16)' : 'rgba(255,255,255,.5)'; ctx.beginPath(); ctx.arc(fx, fy, k * .46, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = DARKBG() ? 'rgba(255,255,255,.16)' : 'rgba(255,255,255,.5)'; ctx.beginPath(); ctx.arc(fx, fy, k * .46, 0, Math.PI * 2); ctx.fill();
   ring(fx, fy, k * .46, mode.glow);
   emoji(itemAt(food.i), fx, fy + k * .04, k * .82, false);
   if (mode.tail) glow(mode.glow, .45);
@@ -669,7 +826,7 @@ function drawMode() {
     ctx.beginPath(); snake.forEach((p, i) => { const [x, y] = C(p); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke();
     for (let i = snake.length - 1; i > 0; i--) {
       const [x, y] = C(snake[i]);
-      ctx.fillStyle = dark ? 'rgba(255,255,255,.14)' : 'rgba(255,255,255,.35)'; ctx.beginPath(); ctx.arc(x, y, k * .42, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = DARKBG() ? 'rgba(255,255,255,.14)' : 'rgba(255,255,255,.35)'; ctx.beginPath(); ctx.arc(x, y, k * .42, 0, Math.PI * 2); ctx.fill();
       ring(x, y, k * .42, mode.glow);
       emoji(collected[i - 1] || itemAt(i), x, y + k * .04, k * .78, false);
     }
@@ -853,11 +1010,15 @@ function togglePause() {
 function renderBoard() {
   const list = $('list'); list.textContent = '';
   if (!games.length) { const li = document.createElement('li'); li.className = 'empty'; li.textContent = 'Noch keine Spiele. Leg los!'; list.appendChild(li); return; }
-  games.slice(0, 10).forEach((g, i) => {
+  // sortiert nach Punkten, bei Gleichstand das neuere zuerst; das gerade gespielte Spiel wird markiert
+  const latest = games[0];
+  [...games].sort((a, b) => b.score - a.score || b.at - a.at).slice(0, 10).forEach((g, i) => {
     const li = document.createElement('li');
+    if (g === latest) li.className = 'me';
     const d = new Date(g.at);
     [['pos', '#' + (i + 1)], ['who', g.name], ['when', d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }) + ' ' + d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })], ['pts', String(g.score)]]
       .forEach(([c, t]) => { const s = document.createElement('span'); s.className = c; s.textContent = t; li.appendChild(s); });
+    if (g === latest) { const n = document.createElement('span'); n.className = 'neu'; n.textContent = 'NEU'; li.querySelector('.who').appendChild(n); }
     list.appendChild(li);
   });
 }
@@ -865,6 +1026,13 @@ renderBoard();
 
 /* ===== Eingaben ===== */
 go.addEventListener('click', start);
+// Rangliste: nur auf Knopfdruck nach Game Over
+function openBoard() { renderBoard(); $('lb').hidden = false; $('lbPlay').focus(); }
+function closeBoard() { $('lb').hidden = true; }
+$('lbOpen').addEventListener('click', openBoard);
+$('lbClose').addEventListener('click', () => { closeBoard(); $('lbOpen').focus(); });
+$('lbPlay').addEventListener('click', () => { closeBoard(); start(); });
+$('lb').addEventListener('click', e => { if (e.target === $('lb')) closeBoard(); });
 nameIn.addEventListener('keydown', e => { if (e.key === 'Enter') start(); });
 $('pause').addEventListener('click', togglePause);
 // NOCHMAL nach der Liebeserklärung: zurück ins Startmenü
@@ -884,6 +1052,7 @@ document.querySelectorAll('.pad button').forEach(b => {
 });
 const KEYS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', w: 'up', s: 'down', a: 'left', d: 'right' };
 document.addEventListener('keydown', e => {
+  if (!$('lb').hidden) { if (e.key === 'Escape') closeBoard(); return; }
   if (e.target === nameIn) return;
   if (KEYS[e.key]) { e.preventDefault(); turn(KEYS[e.key]); }
   else if ((e.key === ' ' || e.key === 'p') && !$('win').hidden) { e.preventDefault(); }
