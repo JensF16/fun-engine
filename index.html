@@ -292,6 +292,13 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .lbc h3{font-size:22px!important}
 .board li.me{background:color-mix(in srgb,var(--ink) 9%,transparent);border-radius:8px}
 .board .neu{font:700 10px Rubik,sans-serif;background:#ff2bd6;color:#fff;border-radius:6px;padding:2px 5px;margin-left:6px;vertical-align:2px}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;margin:4px 0 10px;border-radius:12px;background:color-mix(in srgb,var(--ink) 9%,transparent)}
+.tabs button{min-height:40px;border:0;border-radius:9px;background:none;color:var(--ink);font:600 14px Rubik,sans-serif;cursor:pointer}
+.tabs button[aria-selected=true]{background:var(--ink);color:var(--bg)}
+.tabs button:focus-visible{outline:3px solid var(--ink);outline-offset:1px}
+.board li.load{opacity:.7;font-size:15px}
+.priv{font-size:12px;opacity:.75;max-width:26ch;line-height:1.3}
+.overlay.over .priv{display:none}
 .lbb{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;align-items:center}
 .lbb .go{background:var(--ink);color:var(--bg);flex:1 1 auto}
 .lbx{min-height:48px;padding:0 18px;border-radius:24px;border:2px solid color-mix(in srgb,var(--ink) 30%,transparent);background:none;color:var(--ink);font:600 15px Rubik,sans-serif;cursor:pointer}
@@ -347,6 +354,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
           <p id="ovText">Steuere mit den Pfeilen oder wische über den Bildschirm. Friss Äpfel, aber triff weder Wand noch dich selbst.</p>
           <div class="act">
             <input class="name" id="name" maxlength="16" placeholder="Dein Name" autocomplete="nickname" aria-label="Dein Name">
+            <small class="priv" id="priv" hidden>Dein Name erscheint in der öffentlichen Rangliste.</small>
             <button class="go" id="go">START</button>
           </div>
         </div>
@@ -382,8 +390,12 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
   <div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-labelledby="lbT">
     <div class="lbc board">
       <h3 id="lbT">🏆 Rangliste</h3>
+      <div class="tabs" role="tablist">
+        <button role="tab" id="tabTop" aria-selected="true">Bestenliste</button>
+        <button role="tab" id="tabRecent" aria-selected="false">Letzte Spiele</button>
+      </div>
       <ol id="list"></ol>
-      <p class="note">Die besten Spiele auf diesem Gerät.</p>
+      <p class="note" id="lbNote">Die besten Spiele auf diesem Gerät.</p>
       <div class="lbb"><button class="go" id="lbPlay">NOCHMAL SPIELEN</button><button class="lbx" id="lbClose">Zurück</button></div>
     </div>
   </div>
@@ -1188,8 +1200,11 @@ function milestone() {
 function over(won) {
   running = false; clearTimeout(timer); led.classList.remove('on'); draw();
   const name = nameIn.value.trim() || 'Anonym';
-  games.unshift({ name, score, at: Date.now() }); games = games.slice(0, 20);
+  const entry = { name, score, at: Date.now() };
+  games.unshift(entry); games = games.slice(0, 20);
   store.set('snake.games', games);
+  lastEntry = entry;
+  if (bike && score >= MILESTONE && !continued) pendingChris = entry; else submitScore(entry);
   if (score > best) { best = score; bestEl.textContent = best; }
   renderBoard();
   ovTitle.textContent = won ? 'GEWONNEN!' : 'GAME OVER';
@@ -1217,18 +1232,65 @@ function togglePause() {
 }
 
 /* ===== Rangliste ===== */
+
+/* ===== Gemeinsame Online-Rangliste (Google Sheets) ===== */
+// Hier die Web-App-URL aus Google Apps Script eintragen (endet auf /exec).
+// Leer = nur Rangliste auf dem Gerät.
+const SCORE_API = 'https://script.google.com/macros/s/AKfycbzTh8Z7QS7sDddU8qJ-5z4PKB5uiD-SyyOl73xZxi0ZwkmZQjrnZbDqMYdKIsfmaWOE/exec';
+let lastEntry = null, online = null, tab = 'top', pendingChris = null;
+const fetchT = (url, opt, ms) => { const c = new AbortController(), t = setTimeout(() => c.abort(), ms || 8000);
+  return fetch(url, Object.assign({}, opt, { signal: c.signal })).finally(() => clearTimeout(t)); };
+// noch nicht gesendete Einträge (z. B. offline) merken und später nachschicken
+function queueSend(entry) { const q = store.get('snake.outbox', []); q.push(entry); store.set('snake.outbox', q.slice(-30)); flushOutbox(); }
+let flushing = false;
+async function flushOutbox() {
+  if (!SCORE_API || flushing) return; flushing = true;
+  try {
+    let q = store.get('snake.outbox', []);
+    while (q.length) {
+      const e = q[0];
+      const r = await fetchT(SCORE_API, { method: 'POST', keepalive: true, headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(e) });
+      if (!r.ok) break;
+      q.shift(); store.set('snake.outbox', q);
+    }
+  } catch (err) { /* offline – später nochmal */ }
+  flushing = false;
+}
+function submitScore(entry) {
+  if (!SCORE_API) return;
+  queueSend({ name: entry.name, score: entry.score, skin, at: entry.at });
+}
+async function loadOnline() {
+  if (!SCORE_API) return null;
+  try {
+    await flushOutbox();
+    const r = await fetchT(SCORE_API + '?t=' + Date.now(), { method: 'GET' });
+    const d = await r.json();
+    if (!d || !d.ok) return null;
+    return d;
+  } catch (err) { return null; }
+}
+if (SCORE_API) { $('priv').hidden = false; flushOutbox(); }
+
 function renderBoard() {
   const list = $('list'); list.textContent = '';
-  if (!games.length) { const li = document.createElement('li'); li.className = 'empty'; li.textContent = 'Noch keine Spiele. Leg los!'; list.appendChild(li); return; }
-  // sortiert nach Punkten, bei Gleichstand das neuere zuerst; das gerade gespielte Spiel wird markiert
-  const latest = games[0];
-  [...games].sort((a, b) => b.score - a.score || b.at - a.at).slice(0, 10).forEach((g, i) => {
-    const li = document.createElement('li');
-    if (g === latest) li.className = 'me';
+  const src = online ? (tab === 'top' ? online.top : online.recent)
+                     : (tab === 'top' ? [...games].sort((a, b) => b.score - a.score || b.at - a.at).slice(0, 10) : games.slice(0, 20));
+  $('tabTop').setAttribute('aria-selected', String(tab === 'top'));
+  $('tabRecent').setAttribute('aria-selected', String(tab === 'recent'));
+  $('lbNote').textContent = online ? `Alle Spieler · ${online.total} Spiele online gespeichert`
+    : SCORE_API ? 'Offline – gezeigt werden die Spiele auf diesem Gerät.' : 'Die Spiele auf diesem Gerät.';
+  if (!src.length) { const li = document.createElement('li'); li.className = 'empty'; li.textContent = 'Noch keine Spiele. Leg los!'; list.appendChild(li); return; }
+  // das gerade gespielte Spiel wird markiert
+  const isMe = g => lastEntry && g.name === lastEntry.name && g.score === lastEntry.score && Math.abs(g.at - lastEntry.at) < 180000;
+  let marked = false;
+  src.forEach((g, i) => {
+    const li = document.createElement('li'), me = !marked && isMe(g);
+    if (me) { li.className = 'me'; marked = true; }
     const d = new Date(g.at);
-    [['pos', '#' + (i + 1)], ['who', g.name], ['when', d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }) + ' ' + d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })], ['pts', String(g.score)]]
+    [['pos', tab === 'top' ? '#' + (i + 1) : '·'], ['who', g.name], ['when', d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }) + ' ' + d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })], ['pts', String(g.score)]]
       .forEach(([c, t]) => { const s = document.createElement('span'); s.className = c; s.textContent = t; li.appendChild(s); });
-    if (g === latest) { const n = document.createElement('span'); n.className = 'neu'; n.textContent = 'NEU'; li.querySelector('.who').appendChild(n); }
+    if (me) { const n = document.createElement('span'); n.className = 'neu'; n.textContent = 'NEU'; li.querySelector('.who').appendChild(n); }
     list.appendChild(li);
   });
 }
@@ -1237,7 +1299,16 @@ renderBoard();
 /* ===== Eingaben ===== */
 go.addEventListener('click', start);
 // Rangliste: nur auf Knopfdruck nach Game Over
-function openBoard() { renderBoard(); $('lb').hidden = false; $('lbPlay').focus(); }
+async function openBoard() {
+  online = null; renderBoard(); $('lb').hidden = false; $('lbPlay').focus();
+  if (!SCORE_API) return;
+  const li = document.createElement('li'); li.className = 'load'; li.textContent = 'Lade Rangliste aller Spieler …';
+  $('list').prepend(li);
+  online = await loadOnline();
+  if (!$('lb').hidden) renderBoard();
+}
+$('tabTop').addEventListener('click', () => { tab = 'top'; renderBoard(); });
+$('tabRecent').addEventListener('click', () => { tab = 'recent'; renderBoard(); });
 function closeBoard() { $('lb').hidden = true; }
 $('lbOpen').addEventListener('click', openBoard);
 $('lbClose').addEventListener('click', () => { closeBoard(); $('lbOpen').focus(); });
@@ -1264,11 +1335,13 @@ $('loveGo').addEventListener('click', () => {
   clearTimeout(rollT); rollT = setTimeout(() => { $('win').classList.remove('roll'); confetti(); b.style.visibility = ''; $('cont').classList.add('show'); }, 5000);
 });
 let rollT = null, continued = false;
+addEventListener('pagehide', () => { if (pendingChris) { submitScore(pendingChris); pendingChris = null; } });
 // WEITERSPIELEN: Chris spielt mit seinen Punkten weiter (kurzer Countdown)
 $('contGo').addEventListener('click', () => {
   $('cont').classList.remove('show'); $('win').hidden = true; clearTimeout(rollT);
   // der bei 10 Punkten gespeicherte Eintrag wird ersetzt, wenn das Spiel später endet
   if (games[0] && games[0].name.toLowerCase() === 'chris' && games[0].score === score) { games.shift(); store.set('snake.games', games); }
+  pendingChris = null;
   continued = true; queue = []; draw();
   let n = 3;
   const tick = () => {
@@ -1351,7 +1424,7 @@ function drumroll(sec) {
     const at = te + .3 + j * .08; g.gain.setValueAtTime(.06, at); g.gain.exponentialRampToValueAtTime(.001, at + .5); o.connect(g).connect(out); o.start(at); o.stop(at + .55); });
 }
 // NOCHMAL nach YOU WIN: zurück ins Startmenü
-$('winGo').addEventListener('click', () => { $('win').hidden = true; paused = false; showStartMenu(); });
+$('winGo').addEventListener('click', () => { if (pendingChris) { submitScore(pendingChris); pendingChris = null; } $('win').hidden = true; paused = false; showStartMenu(); });
 document.querySelectorAll('.pad button').forEach(b => {
   const fire = e => { e.preventDefault(); turn(b.dataset.dir); b.classList.add('hit'); setTimeout(() => b.classList.remove('hit'), 90); };
   b.addEventListener('pointerdown', fire);
