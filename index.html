@@ -296,6 +296,8 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .tabs button{min-height:40px;border:0;border-radius:9px;background:none;color:var(--ink);font:600 14px Rubik,sans-serif;cursor:pointer}
 .tabs button[aria-selected=true]{background:var(--ink);color:var(--bg)}
 .tabs button:focus-visible{outline:3px solid var(--ink);outline-offset:1px}
+.sub2{margin:0 0 8px;font-size:14px;opacity:.7}
+.board .cnt{font-size:12px;opacity:.6;margin-left:6px;white-space:nowrap}
 .board li.load{opacity:.7;font-size:15px}
 .priv{font-size:12px;opacity:.75;max-width:26ch;line-height:1.3}
 .overlay.over .priv{display:none}
@@ -339,7 +341,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
             <b class="w4">LIEB</b>
           </div>
           <div class="hearts" aria-hidden="true"><span>💖</span><span>✨</span><span>💘</span><span>🌈</span><span>💖</span><span>⭐</span><span>💗</span><span>✨</span></div>
-          <button class="go" id="loveGo">WEITER</button>
+          <button class="go" id="loveGo">NOCHMAL</button>
         </div>
         <div class="win" id="win" hidden>
           <i class="wray"></i><div class="conf" id="conf"></div>
@@ -390,10 +392,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
   <div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-labelledby="lbT">
     <div class="lbc board">
       <h3 id="lbT">🏆 Rangliste</h3>
-      <div class="tabs" role="tablist">
-        <button role="tab" id="tabTop" aria-selected="true">Bestenliste</button>
-        <button role="tab" id="tabRecent" aria-selected="false">Letzte Spiele</button>
-      </div>
+      <p class="sub2">Pro Spieler zählt nur die beste Leistung.</p>
       <ol id="list"></ol>
       <p class="note" id="lbNote">Die besten Spiele auf diesem Gerät.</p>
       <div class="lbb"><button class="go" id="lbPlay">NOCHMAL SPIELEN</button><button class="lbx" id="lbClose">Zurück</button></div>
@@ -1190,7 +1189,8 @@ function milestone() {
     // Chris: riesiges YOU WIN, das Spiel ist damit beendet
     running = false; paused = true; clearTimeout(timer); led.classList.remove('on');
     // erst Feuerwerk + Ständchen, dann YOU WIN
-    party(() => over());
+    // direkt die Liebeserklärung (Geburtstagsshow und YOU WIN sind raus; party() und drumroll() bleiben für später im Code)
+    over();
     return;
   }
   toast.textContent = MILESTONE_MSG; toast.classList.add('show');
@@ -1201,7 +1201,7 @@ function over(won) {
   running = false; clearTimeout(timer); led.classList.remove('on'); draw();
   const name = nameIn.value.trim() || 'Anonym';
   const entry = { name, score, at: Date.now() };
-  games.unshift(entry); games = games.slice(0, 20);
+  games.unshift(entry); games = games.slice(0, 200);
   store.set('snake.games', games);
   lastEntry = entry;
   if (bike && score >= MILESTONE && !continued) pendingChris = entry; else submitScore(entry);
@@ -1218,7 +1218,7 @@ function over(won) {
   fact.classList.add('show');
   if (bike && score >= MILESTONE && !continued) {
     // Chris hat die 10 geschafft: Liebeserklärung statt Game Over
-    setTimeout(() => { $('love').hidden = false; }, 350);
+    setTimeout(() => { $('love').hidden = false; fact.classList.remove('show'); $('cont').classList.add('show'); }, 350);
     return;
   }
   setTimeout(() => { ov.hidden = false; }, 350);
@@ -1237,7 +1237,7 @@ function togglePause() {
 // Hier die Web-App-URL aus Google Apps Script eintragen (endet auf /exec).
 // Leer = nur Rangliste auf dem Gerät.
 const SCORE_API = 'https://script.google.com/macros/s/AKfycbzTh8Z7QS7sDddU8qJ-5z4PKB5uiD-SyyOl73xZxi0ZwkmZQjrnZbDqMYdKIsfmaWOE/exec';
-let lastEntry = null, online = null, tab = 'top', pendingChris = null;
+let lastEntry = null, online = null, pendingChris = null;
 const fetchT = (url, opt, ms) => { const c = new AbortController(), t = setTimeout(() => c.abort(), ms || 8000);
   return fetch(url, Object.assign({}, opt, { signal: c.signal })).finally(() => clearTimeout(t)); };
 // noch nicht gesendete Einträge (z. B. offline) merken und später nachschicken
@@ -1260,6 +1260,14 @@ function submitScore(entry) {
   if (!SCORE_API) return;
   queueSend({ name: entry.name, score: entry.score, skin, at: entry.at });
 }
+function bestPerPlayer(list) {
+  const m = {};
+  list.forEach(g => { const k = g.name.trim().toLowerCase(), c = m[k];
+    if (!c) m[k] = { name: g.name, score: g.score, at: g.at, plays: g.plays || 1, last: g.at };
+    else { c.plays += g.plays || 1; if (g.at > c.last) { c.last = g.at; c.name = g.name; }
+      if (g.score > c.score || (g.score === c.score && g.at < c.at)) { c.score = g.score; c.at = g.at; } } });
+  return Object.values(m).sort((a, b) => b.score - a.score || a.at - b.at).slice(0, 20);
+}
 async function loadOnline() {
   if (!SCORE_API) return null;
   try {
@@ -1267,6 +1275,8 @@ async function loadOnline() {
     const r = await fetchT(SCORE_API + '?t=' + Date.now(), { method: 'GET' });
     const d = await r.json();
     if (!d || !d.ok) return null;
+    if (!d.best) { const seen = new Set(), all = (d.top || []).concat(d.recent || []).filter(g => { const k = g.name + '|' + g.score + '|' + g.at; if (seen.has(k)) return false; seen.add(k); return true; });
+      d.best = bestPerPlayer(all).map(g => Object.assign(g, { plays: 0 })); d.players = d.best.length; d.old = true; }
     return d;
   } catch (err) { return null; }
 }
@@ -1274,23 +1284,21 @@ if (SCORE_API) { $('priv').hidden = false; flushOutbox(); }
 
 function renderBoard() {
   const list = $('list'); list.textContent = '';
-  const src = online ? (tab === 'top' ? online.top : online.recent)
-                     : (tab === 'top' ? [...games].sort((a, b) => b.score - a.score || b.at - a.at).slice(0, 10) : games.slice(0, 20));
-  $('tabTop').setAttribute('aria-selected', String(tab === 'top'));
-  $('tabRecent').setAttribute('aria-selected', String(tab === 'recent'));
-  $('lbNote').textContent = online ? `Alle Spieler · ${online.total} Spiele online gespeichert`
+  const src = online ? online.best : bestPerPlayer(games);
+  $('lbNote').textContent = online ? `${online.players} Spieler · ${online.total} Spiele online gespeichert`
     : SCORE_API ? 'Offline – gezeigt werden die Spiele auf diesem Gerät.' : 'Die Spiele auf diesem Gerät.';
   if (!src.length) { const li = document.createElement('li'); li.className = 'empty'; li.textContent = 'Noch keine Spiele. Leg los!'; list.appendChild(li); return; }
-  // das gerade gespielte Spiel wird markiert
-  const isMe = g => lastEntry && g.name === lastEntry.name && g.score === lastEntry.score && Math.abs(g.at - lastEntry.at) < 180000;
-  let marked = false;
+  const me = lastEntry && lastEntry.name.trim().toLowerCase();
   src.forEach((g, i) => {
-    const li = document.createElement('li'), me = !marked && isMe(g);
-    if (me) { li.className = 'me'; marked = true; }
+    const li = document.createElement('li'), mine = me && g.name.trim().toLowerCase() === me;
+    if (mine) li.className = 'me';
     const d = new Date(g.at);
-    [['pos', tab === 'top' ? '#' + (i + 1) : '·'], ['who', g.name], ['when', d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }) + ' ' + d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })], ['pts', String(g.score)]]
+    [['pos', '#' + (i + 1)], ['who', g.name], ['when', d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' })], ['pts', String(g.score)]]
       .forEach(([c, t]) => { const s = document.createElement('span'); s.className = c; s.textContent = t; li.appendChild(s); });
-    if (me) { const n = document.createElement('span'); n.className = 'neu'; n.textContent = 'NEU'; li.querySelector('.who').appendChild(n); }
+    const who = li.querySelector('.who');
+    if (g.plays > 1) { const c = document.createElement('span'); c.className = 'cnt'; c.textContent = g.plays + ' Spiele'; who.appendChild(c); }
+    // NEU, wenn das gerade gespielte Spiel die neue Bestleistung ist
+    if (mine && g.score === lastEntry.score && Math.abs(g.at - lastEntry.at) < 180000) { const n = document.createElement('span'); n.className = 'neu'; n.textContent = 'NEU'; who.appendChild(n); }
     list.appendChild(li);
   });
 }
@@ -1307,8 +1315,7 @@ async function openBoard() {
   online = await loadOnline();
   if (!$('lb').hidden) renderBoard();
 }
-$('tabTop').addEventListener('click', () => { tab = 'top'; renderBoard(); });
-$('tabRecent').addEventListener('click', () => { tab = 'recent'; renderBoard(); });
+
 function closeBoard() { $('lb').hidden = true; }
 $('lbOpen').addEventListener('click', openBoard);
 $('lbClose').addEventListener('click', () => { closeBoard(); $('lbOpen').focus(); });
@@ -1324,21 +1331,16 @@ function showStartMenu() {
   $('ly').hidden = true; ov.classList.remove('over'); fact.classList.remove('show'); $('cont').classList.remove('show');
   ov.hidden = false;
 }
-// WEITER nach der Liebeserklärung: YOU WIN mit Trommelwirbel
+// NOCHMAL nach der Liebeserklärung: 10-Punkte-Ergebnis senden, zurück ins Startmenü
 $('loveGo').addEventListener('click', () => {
-  $('love').hidden = true; $('win').hidden = false;
-  const b = $('winGo'); b.style.visibility = 'hidden';
-  $('win').classList.add('roll');
-  drumroll(5);
-  $('conf').textContent = '';
-  fact.classList.remove('show'); $('cont').classList.remove('show');
-  clearTimeout(rollT); rollT = setTimeout(() => { $('win').classList.remove('roll'); confetti(); b.style.visibility = ''; $('cont').classList.add('show'); }, 5000);
+  if (pendingChris) { submitScore(pendingChris); pendingChris = null; }
+  showStartMenu();
 });
 let rollT = null, continued = false;
 addEventListener('pagehide', () => { if (pendingChris) { submitScore(pendingChris); pendingChris = null; } });
 // WEITERSPIELEN: Chris spielt mit seinen Punkten weiter (kurzer Countdown)
 $('contGo').addEventListener('click', () => {
-  $('cont').classList.remove('show'); $('win').hidden = true; clearTimeout(rollT);
+  $('cont').classList.remove('show'); $('win').hidden = true; $('love').hidden = true; clearTimeout(rollT);
   // der bei 10 Punkten gespeicherte Eintrag wird ersetzt, wenn das Spiel später endet
   if (games[0] && games[0].name.toLowerCase() === 'chris' && games[0].score === score) { games.shift(); store.set('snake.games', games); }
   pendingChris = null;
